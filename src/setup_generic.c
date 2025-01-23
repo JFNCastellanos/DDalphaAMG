@@ -25,6 +25,7 @@ void inv_iter_2lvl_extension_setup_PRECISION( int setup_iter, level_struct *l, s
 void inv_iter_inv_fcycle_PRECISION( int setup_iter, level_struct *l, struct Thread *threading );
 void testvector_analysis_PRECISION( vector_PRECISION *test_vectors, level_struct *l, struct Thread *threading );
 void read_tv_from_file_PRECISION( level_struct *l, struct Thread *threading );
+void printTestVector(vector_PRECISION *test_vectors, level_struct *l, struct Thread *threading);
 
 void coarse_grid_correction_PRECISION_setup( level_struct *l, struct Thread *threading ) {
   
@@ -117,6 +118,7 @@ void iterative_PRECISION_setup( int setup_iter, level_struct *l, struct Thread *
       default: inv_iter_2lvl_extension_setup_PRECISION( setup_iter, l, threading ); break;
     }
   }
+  
 
   level_struct *lp = l;
   while( lp->level > 0 ) {
@@ -505,25 +507,75 @@ void inv_iter_inv_fcycle_PRECISION( int setup_iter, level_struct *l, struct Thre
 
 void testvector_analysis_PRECISION( vector_PRECISION *test_vectors, level_struct *l, struct Thread *threading ) {
 #ifdef TESTVECTOR_ANALYSIS
+  
   START_UNTHREADED_FUNCTION(threading)
-  if ( l->depth == 0 ) {
-    
+  //if ( l->depth == 0 ) {
   complex_PRECISION lambda;
   PRECISION mu;
+  l->COUNTER += 1;
+  printf0("--------------------------------------- counter: %d ----------------------------------------\n", l->COUNTER);
   printf0("--------------------------------------- depth: %d ----------------------------------------\n", l->depth );
-  for ( int i=0; i<l->num_eig_vect; i++ ) {
+  printf0("--------------------------------------- level: %d ----------------------------------------\n", l->level );
+  if (l->COUNTER == 2){
+      FILE *fptr;
+      char Name[1000]; sprintf(Name, "testvector_depth%d.txt", l->depth); //Saves the test vectors,after the setup iterations to a file
+      fptr = fopen(Name, "w");
+      for (int i=0; i<l->num_eig_vect; i++ ) {
+          fprintf(fptr, "#vector%d\n",i);
+          for (int j=0; j<l->inner_vector_size; j++){
+              fprintf(fptr, "%-30.17le%-30.17le\n", creal(test_vectors[i][j]), cimag(test_vectors[i][j]));
+          } 
+      }
+     fclose(fptr);
+  }
+  for ( int i=0; i<l->num_eig_vect; i++ ) {   
     printf0("vector #%02d: ", i+1 );
+    printf0("Vector size %d\n", l->inner_vector_size);
+    printf0("First entry: %le + i%le  \n", creal(test_vectors[i][0]),cimag(test_vectors[i][0]));
     apply_operator_PRECISION( l->vbuf_PRECISION[3], test_vectors[i], &(l->p_PRECISION), l, no_threading );
     coarse_gamma5_PRECISION( l->vbuf_PRECISION[0], l->vbuf_PRECISION[3], 0, l->inner_vector_size, l );
     lambda = global_inner_product_PRECISION( test_vectors[i], l->vbuf_PRECISION[0], 0, l->inner_vector_size, l, no_threading );
     lambda /= global_inner_product_PRECISION( test_vectors[i], test_vectors[i], 0, l->inner_vector_size, l, no_threading );
     vector_PRECISION_saxpy( l->vbuf_PRECISION[1], l->vbuf_PRECISION[0], test_vectors[i], -lambda, 0, l->inner_vector_size, l );
     mu = global_norm_PRECISION( l->vbuf_PRECISION[1], 0, l->inner_vector_size, l, no_threading )/global_norm_PRECISION( test_vectors[i], 0, l->inner_vector_size, l, no_threading );
-    printf0("singular value: %+lf%+lfi, singular vector precision: %le\n", (double)creal(lambda), (double)cimag(lambda), (double)mu );
+    printf0("singular value: %+lf%+lfi, singular vector precision: %le\n", (double)creal(lambda), (double)cimag(lambda), (double)mu );  
   }
+  printf0("--------------------------------------- counter: %d ----------------------------------------\n", l->COUNTER);
   printf0("--------------------------------------- depth: %d ----------------------------------------\n", l->depth );
+  printf0("--------------------------------------- level: %d ----------------------------------------\n", l->level );
   
-  }
+  //}
   END_UNTHREADED_FUNCTION(threading)
 #endif
+}
+
+void printTestVector_PRECISION_setup(level_struct *l, struct Thread *threading ) {
+  level_struct *lp = l;
+  while( lp->level > 0 ) {
+    printTestVector_PRECISION( lp->is_PRECISION.test_vector, lp, threading );
+    lp = lp->next_level;
+    if ( lp == NULL )
+      break;
+  }
+}
+
+
+
+//Prints test vector
+void printTestVector_PRECISION(vector_PRECISION *test_vectors, level_struct *l, struct Thread *threading){
+  #ifdef TESTVECTOR_ANALYSIS
+ START_UNTHREADED_FUNCTION(threading)
+  printf("##########################################################################################\n");
+  printf0("--------------------------------------- depth: %d ----------------------------------------\n", l->depth );
+  printf0("--------------------------------------- level: %d ----------------------------------------\n", l->level );
+  for ( int i=0; i<l->num_eig_vect; i++ ) {   
+    printf0("vector #%02d: ", i+1 );
+    printf0("Vector size %d\n", l->inner_vector_size);
+    printf0("First entry: %le + i%le  \n", creal(test_vectors[i][0]),cimag(test_vectors[i][0]));
+  }
+  printf0("--------------------------------------- depth: %d ----------------------------------------\n", l->depth );
+  printf0("--------------------------------------- level: %d ----------------------------------------\n", l->level );
+  printf("##########################################################################################\n");
+  END_UNTHREADED_FUNCTION(threading)
+  #endif
 }

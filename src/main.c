@@ -21,12 +21,12 @@
  
 #include "main.h"
 
-global_struct g;
+extern global_struct g;
 #ifdef HAVE_HDF5
 Hdf5_fileinfo h5info;
 #endif
 struct common_thread_data *commonthreaddata;
-struct Thread *no_threading;
+extern struct Thread *no_threading;
 
 int main( int argc, char **argv ) {
     
@@ -41,7 +41,9 @@ int main( int argc, char **argv ) {
   h5info.mode=-1;
 #endif
   level_struct l;
+  l.COUNTER = 0;
   config_double hopp = NULL, clov = NULL;
+
   
   MPI_Init( &argc, &argv );
   
@@ -106,11 +108,15 @@ int main( int argc, char **argv ) {
     method_setup( NULL, &l, &threading );
     
     // iterative phase
+    printTestVector( &l, &threading); //prints frist entry of test vectors before the iterations
     method_update( l.setup_iter, &l, &threading );
     
     solve_driver( &l, &threading );
+
+    printTestVector( &l, &threading); //prints first entry of test vectors after the iterations
   }
   
+
   finalize_common_thread_data(commonthreaddata);
   finalize_no_threading(no_threading);
   method_free( &l );

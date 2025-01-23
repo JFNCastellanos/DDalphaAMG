@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <complex.h>
 #include <time.h>
 #include <math.h>
@@ -139,8 +140,10 @@ int main ( int argc, char **argv ) {
   int mu, N[4], k = 5;
   long long int i = 0, n = 0;         
   double plaq = 0.0, U[18];
-  char s[100];                 
+  char s[100], info[5000];  
+  bool txt=true;          
   FILE *fout = NULL;
+  FILE *ftxt = NULL;
   
   srand( time ( 0 ) );
   
@@ -148,34 +151,41 @@ int main ( int argc, char **argv ) {
     N[mu] = atoi(argv[mu+1]);
   
   n = ((long long int)N[T])*((long long int)N[Z])*((long long int)N[Y])*((long long int)N[X]);
-  n *= 72;
+  n *= 72; // 4 link variables per site, 18 doubles per link variable (SU(3) matrices)
   
   sprintf( s, "%dx%dx%dx%d_random", (int)N[T], (int)N[Z], (int)N[Y], (int)N[X] );
+  assert( ( fout = fopen( s, "wb" ) ) != NULL ); 
+  fwrite( N, sizeof(int), 4, fout ); //Lattice dimensions DDalfa needs this ...
+  fwrite( &plaq, sizeof(double), 1, fout ); //As far as it seems, this only prints plaq = 0.0 to the file
   
-  assert( ( fout = fopen( s, "wb" ) ) != NULL );
-  
-  fwrite( N, sizeof(int), 4, fout );
-  fwrite( &plaq, sizeof(double), 1, fout );
-  
+  if (txt == true){
+    sprintf( s, "%dx%dx%dx%d_random.txt", (int)N[T], (int)N[Z], (int)N[Y], (int)N[X] );
+    assert( ( ftxt = fopen( s, "wb" ) ) != NULL ); 
+  }
+
   while ( i < n ) {
-    
     if ( ((double)i/(double)n)*100.0 >= k ) {
       printf("%d%%...\n", k );
       k += 5;
     }
     
     rand_su3( U );
+    fwrite( U, sizeof(double),18, fout ); fflush(0); //Writes the SU(3) matrix to the file
     
-    fwrite( U, sizeof(double), 18, fout ); fflush(0);
-    
-    i+=18;
+    if (txt==true){
+      for(int m=0; m<18; m++)
+        fprintf(ftxt, "%-30.17g", U[m] );
+      fprintf(ftxt,"\n");
+    }
+    i+=18; //Proceed to the next site
   }
   printf("100%%...\n");
   
   printf("configuration %s written!\n", s );
   
   fclose( fout );
-  
+  if (txt==true)
+    fclose( ftxt );
+
   return 0;
-  
 }

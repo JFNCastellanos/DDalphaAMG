@@ -311,6 +311,7 @@
     int num_lattice_site_var;
     int level;
     int depth;
+    int COUNTER; //I put this variable to print the test vectors after the setup (Fabian)
     // number of sites in local volume + ghost shell (either fw or bw)
     int num_lattice_sites;
     // number of sites in local volume

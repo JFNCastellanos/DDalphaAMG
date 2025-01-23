@@ -57,6 +57,7 @@ void next_level_setup( vector_double *V, level_struct *l, struct Thread *threadi
     l->next_level->local_lattice = g.local_lattice[l->depth+1];
     l->next_level->block_lattice = g.block_lattice[l->depth+1];
     l->next_level->num_processes = 1;
+    l->next_level->COUNTER = 0;
 
     for (mu=0; mu<4; mu++) {
       if ( l->depth+2 < g.num_levels )
@@ -370,6 +371,14 @@ void method_update( int setup_iter, level_struct *l, struct Thread *threading ) 
     
     
   }
+}
+
+void printTestVector(level_struct *l, struct Thread *threading){
+  if ( g.mixed_precision )
+      printTestVector_float_setup(l, threading);
+  else
+      printTestVector_double_setup(l, threading);
+  
 }
 
 
