@@ -168,7 +168,7 @@ int main ( int argc, char **argv ) {
       printf("%d%%...\n", k );
       k += 5;
     }
-    
+
     rand_su3( U );
     fwrite( U, sizeof(double),18, fout ); fflush(0); //Writes the SU(3) matrix to the file
     
