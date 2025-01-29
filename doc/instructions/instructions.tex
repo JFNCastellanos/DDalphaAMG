@@ -1,0 +1,40 @@
+\documentclass[a4paper,12pt]{scrartcl}
+\usepackage{ucs}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[scaled=.92]{helvet}
+\usepackage{courier}
+
+
+\begin{document}
+\section{Instructions for compiling and running DDalpha}
+In order to compile the software MPI has to be loaded. With this requirement it is enough to run the \texttt{Makefile} to build DDalpha   \begin{center}
+\texttt{make} \texttt{-f} Makefile \texttt{-j} \textit{numberofthreads} \texttt{wilson}.
+\end{center}This will generate two executables: \texttt{dd\_alpha\_amg} and \texttt{dd\_alpha\_amg\_db}. The latter is the developer version, which is not relevant here. The program requires many input parameters to run properly. These are explained in detail in the documentation \texttt{user\_doc.pdf}). However, I provide two sample scripts, \texttt{sample4.ini} and \texttt{sample8.ini}, for facilitating the usage. They correspond to an inversion of the Dirac matrix on $4^4$ and $8^4$ lattices respectively. The right-hand side of the matrix problem can be chosen to be random or a vector with all its entries equal to one. The sample files choose a vector with ones. DDalpha also requires a \textit{gauge configuration} to run. Given the boundary conditions and a configuration, the correspondent Dirac matrix  is inverted by the program. Random configurations can be created by compiling the source file \texttt{conf/random/random\_conf.c} \begin{center}
+\texttt{gcc} random\_conf.c \texttt{-o} rand.x \texttt{-lm}
+\end{center}When executing this program the lattice dimensions have to be passed through the terminal\begin{center}
+ \texttt{./rand.x Nt Nz Ny Nx}
+\end{center}This generates a binary file with name \texttt{NtxNzxNyxNx\_random} with a gauge configuration. DDalpha does not assemble the Dirac matrix due to its large size. However, in case that it is necessary to have the matrix information, file $\texttt{conf/random/dirac\_matrix.c}$ can be compiled in a similar manner as \texttt{random\_conf.c},\begin{center}
+\texttt{gcc} dirac\_matrix.c \texttt{-o} dirac\_matrix.x \texttt{-lm},
+\end{center}to build the matrix for a given configuration and dump its non-zero entries into a binary file. Once again, the lattice dimensions have to be passed from the terminal \begin{center}
+ \texttt{./dirac\_matrix.x Nt Nz Ny Nx}.
+\end{center}For the moment this program only assembles the matrix with periodic boundary conditions. To read the binary I provide the file \texttt{conf/random/read\_matrix.c}. It can be modified to your convenience for handling the non-zero entries of the Dirac matrix.
+
+\hspace{2mm}
+
+In the future it will be convenient to use configurations from real physical simulations I will provide this data, but for now random configurations should be enough for testing.
+ 
+The path to the configuration file \texttt{dd\_alpha\_amg} can be changed in the sample files. 
+
+To simplify the execution you can use the \texttt{run} script. You only have to modify the sample file path.
+
+\section{Printing the test vectors}
+The interpolator is built by arranging the test vectors in columns. DDalpha computes this vectors in the setup phase, starting with random vectors. The number of test vectors is a free parameter of the code, it can be changed in the sample files. In order to print the test vector it is necessary to pass a flag to the compiler 
+
+\begin{center}
+make \texttt{CFLAGS=" -DTESTVECTOR\_ANALYSIS "}
+\end{center}
+When running the program with this compiler flag the program will print the test vectors into a .txt file. It is important to note that each time the program is run, the test vectors will be different, because they start as random guesses. However, in every execution the set of test vectors should approximate the \textit{near kernel} well.
+
+
+\end{document}
