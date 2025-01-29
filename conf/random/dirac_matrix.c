@@ -10,25 +10,22 @@
 typedef double complex complex_double;
 
 //Lattice dimensions
-#define Nx 8
-#define Ny 8
-#define Nz 8
-#define Nt 8
-#define N 12*Nx*Ny*Nz*Nt
+int Nx, Ny, Nz, Nt;
+#define N (12*Nx*Ny*Nz*Nt)
 #define S 4
 #define C 3
 
 complex_double gammaMat[4][4][4];  //Gamma matrices
-double conf[4*Nx*Ny*Nz*Nt][18]; //SU(3) links
+double** conf; //SU(3) links
 
-int dim[4] = {Nx, Ny, Nz, Nt};
-int IndX[N], IndY[N], IndZ[N], IndT[N], IndS[N], IndC[N];
-double m0=1, h=1; //Default values for mass and lattice spacing
+int* dim;
+int* IndX, * IndY, * IndZ, * IndT, * IndS, * IndC;
+double m0 = 1, h = 1; //Default values for mass and lattice spacing
 int n_mu[4], n_pmu[4]; //Neighbouring sites
-int Identity[4][4] = {{1, 0, 0, 0},
+int Identity[4][4] = { {1, 0, 0, 0},
                          {0, 1, 0, 0},
                          {0, 0, 1, 0},
-                         {0, 0, 0, 1}};
+                         {0, 0, 0, 1} };
 
 //Gamma matrices definition
 void gammas_init(){
@@ -143,7 +140,27 @@ complex_double DiracEntry(int n, int m){
 }
 
 
-int main(){
+int main(int argc, char* argv[]){
+    Nt = atoi(argv[1]);
+    Nz = atoi(argv[2]);
+    Ny = atoi(argv[3]);
+    Nx = atoi(argv[4]);
+
+    dim = (int*)malloc(4 * sizeof(int));
+    dim[0] = Nx; dim[1] = Ny; dim[2] = Nz; dim[3] = Nt;
+
+    IndX = (int*)malloc(N * sizeof(int));
+    IndY = (int*)malloc(N * sizeof(int));
+    IndZ = (int*)malloc(N * sizeof(int));
+    IndT = (int*)malloc(N * sizeof(int));
+    IndS = (int*)malloc(N * sizeof(int));
+    IndC = (int*)malloc(N * sizeof(int));
+
+    conf = (double**)malloc(4 * Nx * Ny * Nz * Nt * sizeof(double*));
+    for (int i = 0; i < 4 * Nx * Ny * Nz * Nt; i++) {
+        conf[i] = (double*)malloc(18 * sizeof(double));
+    }
+
     printf("Nx=%d, Ny=%d, Nz=%d, Nt=%d\n", Nx, Ny, Nz, Nt);
     gammas_init();
     indices_init();
@@ -180,7 +197,6 @@ int main(){
     //----------Write Dirac matrix to file----------//
     clock_t start, end;
     start = clock();
-    FILE *ftxt = NULL;
     FILE *fout = NULL;
     char s[100];
 	sprintf(s, "%dx%dx%dx%d_DiracMatrix", Nt, Nz, Ny, Nx); //Binary file with non-zero entries
@@ -206,6 +222,18 @@ int main(){
     double time_taken = (double)(end - start) / (double)(CLOCKS_PER_SEC);
     printf("Time taken to assemble the Dirac matrix: %g secs\n", time_taken);
     //------------------------------------//
+    // Free allocated memory
+    for (int i = 0; i < 4 * Nx * Ny * Nz * Nt; i++) {
+        free(conf[i]);
+    }
+    free(conf);
+    free(dim);
+    free(IndX);
+    free(IndY);
+    free(IndZ);
+    free(IndT);
+    free(IndS);
+    free(IndC);
     return 0;
 
 }
