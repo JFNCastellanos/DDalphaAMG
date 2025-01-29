@@ -9,10 +9,11 @@
 
 typedef double complex complex_double;
 
-#define Nx 4
-#define Ny 4
-#define Nz 4
-#define Nt 4
+//Lattice dimensions
+#define Nx 8
+#define Ny 8
+#define Nz 8
+#define Nt 8
 #define N 12*Nx*Ny*Nz*Nt
 #define S 4
 #define C 3
@@ -23,7 +24,7 @@ double conf[4*Nx*Ny*Nz*Nt][18]; //SU(3) links
 int dim[4] = {Nx, Ny, Nz, Nt};
 int IndX[N], IndY[N], IndZ[N], IndT[N], IndS[N], IndC[N];
 double m0=1, h=1; //Default values for mass and lattice spacing
-int n_mu[4], n_pmu[4];
+int n_mu[4], n_pmu[4]; //Neighbouring sites
 int Identity[4][4] = {{1, 0, 0, 0},
                          {0, 1, 0, 0},
                          {0, 0, 1, 0},
@@ -101,6 +102,7 @@ static inline int Coord(int *n, int mu){
     return mu + 4*n[3] + 4*Nx*n[2] + 4*Nx*Ny*n[1] + 4*Nx*Ny*Nz*n[0];
 }
 
+//Implements periodic boundary conditions
 void periodic_boundary(int *n_vec, int mu){
     for(int i = 0; i < 4; i++){
         n_mu[i] = mod((n_vec[i]-Identity[mu][i]), dim[i]); //n-hat{mu} with periodic boundary
@@ -108,6 +110,7 @@ void periodic_boundary(int *n_vec, int mu){
     }
 }
 
+//D[n,m]
 complex_double DiracEntry(int n, int m){
     /*
     *alfa, beta: 0,1,2,3 (spin indices)
@@ -146,23 +149,30 @@ int main(){
     indices_init();
     //----------Read configuration----------//
     FILE* ptr_conf;
+    double SU3[18];
     char File[100];
-    char line[1000];
-    sprintf(File, "%dx%dx%dx%d_random.txt",Nt,Nz,Ny,Nx); //Open the binary file
-    ptr_conf = fopen(File, "r");
+	int vol[4]; double plaq;
+    sprintf(File, "%dx%dx%dx%d_random",Nt,Nz,Ny,Nx);
+
+    ptr_conf = fopen(File, "rb");
     if (!ptr_conf) {
         printf("Unable to open file!");
         return 1;
     }
-    int count = 0;
-    while (fgets(line, sizeof(line), ptr_conf) && count < N) {
-        char *ptr = line;
-        //if (count > 1){
-            for (int j = 0; j < 18; j++) {
-                conf[count][j] = strtod(ptr, &ptr);
-            }
-        //}
-        count++;
+
+    // Skip the first two lines  
+	fread(vol, sizeof(int), 4, ptr_conf); //Lattice dimensions
+	fread(&plaq, sizeof(double), 1, ptr_conf); //DDalpha needs this value in the configuration file ...
+      
+    for (int i = 0; i < 4*Nx*Ny*Nz*Nt; i++) {
+        if (fread(&SU3, sizeof(double), 18, ptr_conf) != 18) {
+            perror("Error reading SU3 data");
+            fclose(ptr_conf);
+            return 1;
+        }
+        for (int j = 0; j < 18; j++) {
+            conf[i][j] = SU3[j];
+        }
     }
     fclose(ptr_conf);
     //------------------------------------//
@@ -173,11 +183,8 @@ int main(){
     FILE *ftxt = NULL;
     FILE *fout = NULL;
     char s[100];
-    sprintf( s, "%dx%dx%dx%d_DiracMatrix.txt", Nt,Nz,Ny,Nx); //This one is to compare with python (remove later)
-    assert( ( ftxt = fopen( s, "wb" ) ) != NULL ); 
-    sprintf( s, "%dx%dx%dx%d_DiracMatrix", Nt,Nz,Ny,Nx);
+	sprintf(s, "%dx%dx%dx%d_DiracMatrix", Nt, Nz, Ny, Nx); //Binary file with non-zero entries
     assert( ( fout = fopen( s, "wb" ) ) != NULL ); 
-
     complex_double Dnm;
     //Loop over the matrix entries
     for(int i =0;i<N;i++){
@@ -185,7 +192,6 @@ int main(){
             Dnm = DiracEntry(i,j);
             //Print row, column, real part and imaginary part of the non-zero elements    
             if ( sqrt(creal(Dnm)*creal(Dnm) + cimag(Dnm)*cimag(Dnm)) > 1e-12){
-                fprintf(ftxt, "%-15d%-15d%-30.17g%-30.17g\n", i,j,creal(Dnm),cimag(Dnm));
                 double real_part = creal(Dnm); double imag_part = cimag(Dnm); 
                 fwrite(&i, sizeof(int), 1, fout);
                 fwrite(&j, sizeof(int), 1, fout);
@@ -195,7 +201,6 @@ int main(){
             }
         }
     }
-    fclose( ftxt ); 
     fclose( fout );
     end = clock();
     double time_taken = (double)(end - start) / (double)(CLOCKS_PER_SEC);
@@ -204,4 +209,4 @@ int main(){
     return 0;
 
 }
-    
+  

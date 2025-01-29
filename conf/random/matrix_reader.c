@@ -1,4 +1,5 @@
 #include<stdio.h>
+#include <stdlib.h>
 
 // Dirac Matrix /
 struct DMatrix{
@@ -6,11 +7,15 @@ struct DMatrix{
 	double real, imag;
 };
 
-int main() {
+int main(int argc, char** argv) {
 	FILE* ptr_Dmatrix;
 	struct DMatrix D;
-	int Nx = 4, Ny = 4, Nz = 4, Nt = 4;
-	char File[500];
+	int Nx, Ny, Nz, Nt;
+	Nx = atoi(argv[1]);
+	Ny = atoi(argv[2]);
+	Nz = atoi(argv[3]);
+	Nt = atoi(argv[4]);
+	char File[100];
 	sprintf( File, "%dx%dx%dx%d_DiracMatrix", Nt,Nz,Ny,Nx);
 
 	ptr_Dmatrix = fopen(File, "rb");

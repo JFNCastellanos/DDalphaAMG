@@ -140,10 +140,8 @@ int main ( int argc, char **argv ) {
   int mu, N[4], k = 5;
   long long int i = 0, n = 0;         
   double plaq = 0.0, U[18];
-  char s[100], info[5000];  
-  bool txt=true;          
+  char s[100];
   FILE *fout = NULL;
-  FILE *ftxt = NULL;
   
   srand( time ( 0 ) );
   
@@ -155,13 +153,9 @@ int main ( int argc, char **argv ) {
   
   sprintf( s, "%dx%dx%dx%d_random", (int)N[T], (int)N[Z], (int)N[Y], (int)N[X] );
   assert( ( fout = fopen( s, "wb" ) ) != NULL ); 
-  fwrite( N, sizeof(int), 4, fout ); //Lattice dimensions DDalfa needs this ...
+  fwrite( N, sizeof(int), 4, fout ); //Lattice dimensions DDalpha needs this ...
   fwrite( &plaq, sizeof(double), 1, fout ); //As far as it seems, this only prints plaq = 0.0 to the file
   
-  if (txt == true){
-    sprintf( s, "%dx%dx%dx%d_random.txt", (int)N[T], (int)N[Z], (int)N[Y], (int)N[X] );
-    assert( ( ftxt = fopen( s, "wb" ) ) != NULL ); 
-  }
 
   while ( i < n ) {
     if ( ((double)i/(double)n)*100.0 >= k ) {
@@ -171,12 +165,6 @@ int main ( int argc, char **argv ) {
 
     rand_su3( U );
     fwrite( U, sizeof(double),18, fout ); fflush(0); //Writes the SU(3) matrix to the file
-    
-    if (txt==true){
-      for(int m=0; m<18; m++)
-        fprintf(ftxt, "%-30.17g", U[m] );
-      fprintf(ftxt,"\n");
-    }
     i+=18; //Proceed to the next site
   }
   printf("100%%...\n");
@@ -184,8 +172,6 @@ int main ( int argc, char **argv ) {
   printf("configuration %s written!\n", s );
   
   fclose( fout );
-  if (txt==true)
-    fclose( ftxt );
 
   return 0;
 }
