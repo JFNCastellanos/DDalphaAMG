@@ -26,15 +26,18 @@ In the future it will be convenient to use configurations from real physical sim
  
 The path to the configuration file \texttt{dd\_alpha\_amg} can be changed in the sample files. 
 
-To simplify the execution you can use the \texttt{run} script. You only have to modify the sample file path.
+To simplify the execution you can use the \texttt{run} script. You only have to modify the sample file path on line 19 and perhaps lines 190 and 200, depending on how you excecute programs with MPI on your machine. The sample files have to be passed as input parameters at the execution call, for instance \begin{center}
+
+\texttt{./run -i} sample8.ini.                                                                                                                                                                                                                                                            \end{center}
+
 
 \section{Printing the test vectors}
-The interpolator is built by arranging the test vectors in columns. DDalpha computes this vectors in the setup phase, starting with random vectors. The number of test vectors is a free parameter of the code, it can be changed in the sample files. In order to print the test vector it is necessary to pass a flag to the compiler 
+The interpolator is built by arranging the test vectors in columns. DDalpha computes this vectors in the setup phase, starting with random vectors. The number of test vectors is a free parameter of the code, it can be changed in the sample files. According to Ref.\ [PAPER], between 26 and 30 vectors works fine. In order to print them it is necessary to pass a flag to the compiler
 
 \begin{center}
-make \texttt{CFLAGS=" -DTESTVECTOR\_ANALYSIS "}
+\texttt{make -f} Makefile \texttt{-j} numberofthreads \texttt{wilson CFLAGS=" -DTESTVECTOR\_ANALYSIS "}.
 \end{center}
-When running the program with this compiler flag the program will print the test vectors into a .txt file. It is important to note that each time the program is run, the test vectors will be different, because they start as random guesses. However, in every execution the set of test vectors should approximate the \textit{near kernel} well.
+Running the program compiled with this flag will print the test vectors into a .txt file. It is important to note that each time the program is run the test vectors will be different, because they start as random guesses. However, in every execution the set of test vectors should approximate the \textit{near kernel} well.
 
 
 \end{document}
