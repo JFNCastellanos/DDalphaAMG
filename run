@@ -186,7 +186,7 @@ fi
 
 if [ ${ipa[0]} = 0  ]
 then
-#   /opt/mpich/ch-p4/bin/mpirun $shareoption -np $np $exec $inputfile
+
   mpirun -np $np $exec $inputfile
 else
   cp $inputfile output/${opf}.txt

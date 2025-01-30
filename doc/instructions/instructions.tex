@@ -4,40 +4,75 @@
 \usepackage[T1]{fontenc}
 \usepackage[scaled=.92]{helvet}
 \usepackage{courier}
+\usepackage{mathtools}
 
 
 \begin{document}
 \section{Instructions for compiling and running DDalpha}
-In order to compile the software MPI has to be loaded. With this requirement it is enough to run the \texttt{Makefile} to build DDalpha   \begin{center}
+In order to compile the software MPI has to be installed. With this requirement it is enough to run the \texttt{Makefile} to build DDalpha   \begin{center}
 \texttt{make} \texttt{-f} Makefile \texttt{-j} \textit{numberofthreads} \texttt{wilson}.
-\end{center}This will generate two executables: \texttt{dd\_alpha\_amg} and \texttt{dd\_alpha\_amg\_db}. The latter is the developer version, which is not relevant here. The program requires many input parameters to run properly. These are explained in detail in the documentation \texttt{user\_doc.pdf}). However, I provide two sample scripts, \texttt{sample4.ini} and \texttt{sample8.ini}, for facilitating the usage. They correspond to an inversion of the Dirac matrix on $4^4$ and $8^4$ lattices respectively. The right-hand side of the matrix problem can be chosen to be random or a vector with all its entries equal to one. The sample files choose a vector with ones. DDalpha also requires a \textit{gauge configuration} to run. Given the boundary conditions and a configuration, the correspondent Dirac matrix  is inverted by the program. Random configurations can be created by compiling the source file \texttt{conf/random/random\_conf.c} \begin{center}
-\texttt{gcc} random\_conf.c \texttt{-o} rand.x \texttt{-lm}
+\end{center}This will generate two executables: \texttt{dd\_alpha\_amg} and \texttt{dd\_alpha\_amg\_db}. The latter is the developer version, which is not relevant here. The program requires many input parameters to run properly. These are explained in detail in the documentation \texttt{user\_doc.pdf}). However, I provide two sample scripts, \texttt{sample4.ini} and \texttt{sample8.ini}, for facilitating the usage. They correspond to an inversion of the Dirac matrix on $4^4$ and $8^4$ lattices respectively using a two-grid method. The right-hand side of the matrix problem can be chosen to be random or a vector with all its entries equal to one. The sample files choose a vector with ones. DDalpha also requires a \textit{gauge configuration} to run. Given the boundary conditions (periodic in the samples) and a configuration, the correspondent Dirac matrix  is inverted by the program. Random configurations can be created by compiling the source file \texttt{conf/random/random\_conf.c} \begin{center}
+\texttt{gcc} random\_conf.c \texttt{-o} rand.x \texttt{-lm}.
 \end{center}When executing this program the lattice dimensions have to be passed through the terminal\begin{center}
- \texttt{./rand.x Nt Nz Ny Nx}
-\end{center}This generates a binary file with name \texttt{NtxNzxNyxNx\_random} with a gauge configuration. DDalpha does not assemble the Dirac matrix due to its large size. However, in case that it is necessary to have the matrix information, file $\texttt{conf/random/dirac\_matrix.c}$ can be compiled in a similar manner as \texttt{random\_conf.c},\begin{center}
+ \texttt{./rand.x Nt Nz Ny Nx}.
+\end{center}This generates a binary file, \texttt{NtxNzxNyxNx\_random}, with a SU(3) gauge configuration. DDalpha does not assemble the Dirac matrix due to its large size. However, in case that it is necessary to have the matrix information, one can compile $\texttt{conf/random/dirac\_matrix.c}$ in a similar manner as \texttt{random\_conf.c},\begin{center}
 \texttt{gcc} dirac\_matrix.c \texttt{-o} dirac\_matrix.x \texttt{-lm},
 \end{center}to build the matrix for a given configuration and dump its non-zero entries into a binary file. Once again, the lattice dimensions have to be passed from the terminal \begin{center}
- \texttt{./dirac\_matrix.x Nt Nz Ny Nx}.
-\end{center}For the moment this program only assembles the matrix with periodic boundary conditions. To read the binary I provide the file \texttt{conf/random/read\_matrix.c}. It can be modified to your convenience for handling the non-zero entries of the Dirac matrix.
+ \texttt{./dirac\_matrix.x Nt Nz Ny Nx}
+\end{center}and the configuration has to be in the same directory. For the moment this program only assembles the matrix with periodic boundary conditions. Essentially, it implements the following formula \begin{align*}
+    D(\vec{n},\vec{m})&=\left(m_0+4 \right)\frac{1}{a}I_{12}\delta_{\vec{n},\vec{m}}  \\
+    &- \frac{1}{2a} \sum_{\mu=0}^3 \left[ (I_4-\gamma_\mu)\otimes U_\mu(\vec{n}) \delta_{\vec{n}+\hat{\mu}, \vec{m}}+ (I_4-\gamma_\mu)\otimes U_\mu^\dagger(\vec{n}-\hat{\mu})\delta_{\vec{n}-\hat{\mu},\vec{m}}\right],
+\end{align*}where $m_0$ is a free parameter (I fixed it to -0.5), $a$ is the lattice spacing (I fixed it to one), $I_{12}$ and $I_4$ are the twelve and four dimensional identity matrices respectively, $\gamma_\mu$ are the Dirac matrices \begin{align*}
+        \gamma_0 =\gamma_x= \begin{pmatrix}
+          & & & i \\
+          & & i & \\
+          & -i & & \\
+          -i & & &
+        \end{pmatrix}, &\quad \gamma_1 = \gamma_y = \begin{pmatrix}
+          & &  & -1 \\
+          & & 1 &  \\
+           & 1 & & \\
+          -1 &  & &
+        \end{pmatrix}\\ \\
+        \gamma_2 = \gamma_z = \begin{pmatrix}
+          & & i &  \\
+          & &  & -i \\
+          -i &  & & \\
+           & i & &
+        \end{pmatrix},&\quad \gamma_3 = \gamma_t = \begin{pmatrix}
+          & & 1 &  \\
+          & &  & 1 \\
+          1 &  & & \\
+           & 1 & &
+        \end{pmatrix}.
+    \end{align*}The vectors $\vec{n}$ refer to the lattice sites which live in the volume \begin{align*} V=\lbrace \vec{n}=(n_0,n_1,n_2,n_3)| n_\mu=0,1,\dots,N_\mu-1; \mu=0,1,2,3 \rbrace, \end{align*}\begin{align*}  N_0 = N_x, \quad N_1=N_y, \quad N_2=N_z, \quad N_3=N_t.\end{align*}and $\hat{\mu}$ is a unit vector in the direction indexed by $\mu$. The \textit{gauge links} $U_\mu(\vec{n})$ are random SU(3) matrices stored in the configuration file.
+To read the binary with $D(\vec{n},\vec{m})$ I provide the file \texttt{conf/random/read\_matrix.c}. It can be modified for handling the non-zero entries of the Dirac matrix as you need.
 
 \hspace{2mm}
-
-In the future it will be convenient to use configurations from real physical simulations I will provide this data, but for now random configurations should be enough for testing.
  
-The path to the configuration file \texttt{dd\_alpha\_amg} can be changed in the sample files. 
-
-To simplify the execution you can use the \texttt{run} script. You only have to modify the sample file path on line 19 and perhaps lines 190 and 200, depending on how you excecute programs with MPI on your machine. The sample files have to be passed as input parameters at the execution call, for instance \begin{center}
+The path to the configuration file can be changed in the sample files. To simplify the execution you can use the \texttt{run} script. In case it does not work, perhaps you have to modify lines 190 and 200, which depend on how you excecute programs with MPI on your machine. The sample files have to be passed as input parameters at the execution call, for instance \begin{center}
 
 \texttt{./run -i} sample8.ini.                                                                                                                                                                                                                                                            \end{center}
 
 
-\section{Printing the test vectors}
-The interpolator is built by arranging the test vectors in columns. DDalpha computes this vectors in the setup phase, starting with random vectors. The number of test vectors is a free parameter of the code, it can be changed in the sample files. According to Ref.\ [PAPER], between 26 and 30 vectors works fine. In order to print them it is necessary to pass a flag to the compiler
+In the future it will be convenient to use configurations from real physical simulations I will provide this data, but for now random configurations should be enough for testing.
 
-\begin{center}
-\texttt{make -f} Makefile \texttt{-j} numberofthreads \texttt{wilson CFLAGS=" -DTESTVECTOR\_ANALYSIS "}.
-\end{center}
-Running the program compiled with this flag will print the test vectors into a .txt file. It is important to note that each time the program is run the test vectors will be different, because they start as random guesses. However, in every execution the set of test vectors should approximate the \textit{near kernel} well.
+
+\section{Printing the test vectors}
+The interpolator is built by arranging the test (complex) vectors in columns over the aggregates, as explained in Ref.\ \cite{Frommer}. DDalpha computes this vectors in the setup phase. The number of test vectors is a free parameter of the code, it can be changed in the sample files. By experimenting it was observed that between 20 and 30 vectors works fine. The test vectors at level $l$ are printed in a file with name \texttt{testvector\_level$l$.txt}. They are arranged in a single column separated by dashed lines. For the finest level (highest value of $l$) each vector has $12\times N_x\times N_y\times N_z\times N_t$ complex entries, which correspond to the Dirac matrix dimensions.
+
+
+
+%In order to print them it is necessary to pass a flag to the compiler
+
+%\begin{center}
+%\texttt{make -f} Makefile \texttt{-j} numberofthreads \texttt{wilson CFLAGS=" -DTESTVECTOR\_ANALYSIS "}.
+%\end{center}
+%Running the program compiled with this flag will print the test vectors into a .txt file.
+
+\begin{thebibliography}{X}
+\bibitem{Frommer}A.\ Frommer, K.\ Kahl, S.\ Krieg, B.\ Leder and M.\ Rottmann. Adaptive aggregation based domain decomposition multigrid for the lattice Wilson Dirac operator. \textit{SIAM J. Sci. Comp.}, \textbf{36}(4):A1581--A1608, (2014).
+\end{thebibliography}
 
 
 \end{document}

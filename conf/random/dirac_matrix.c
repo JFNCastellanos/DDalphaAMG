@@ -20,7 +20,7 @@ double** conf; //SU(3) links
 
 int* dim;
 int* IndX, * IndY, * IndZ, * IndT, * IndS, * IndC;
-double m0 = 1, h = 1; //Default values for mass and lattice spacing
+double m0 = -0.5, h = 1; //Default values for mass and lattice spacing
 int n_mu[4], n_pmu[4]; //Neighbouring sites
 int Identity[4][4] = { {1, 0, 0, 0},
                          {0, 1, 0, 0},

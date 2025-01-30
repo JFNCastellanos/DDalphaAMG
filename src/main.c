@@ -108,12 +108,12 @@ int main( int argc, char **argv ) {
     method_setup( NULL, &l, &threading );
     
     // iterative phase
-    printTestVector( &l, &threading); //prints frist entry of test vectors before the iterations
+    //printTestVector( &l, &threading); 
     method_update( l.setup_iter, &l, &threading );
     
     solve_driver( &l, &threading );
 
-    printTestVector( &l, &threading); //prints first entry of test vectors after the iterations
+    printTestVector( &l, &threading); //writes test vectors to a file (after the setup iterations)
   }
   
 

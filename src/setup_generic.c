@@ -513,10 +513,11 @@ void testvector_analysis_PRECISION( vector_PRECISION *test_vectors, level_struct
   complex_PRECISION lambda;
   PRECISION mu;
   l->COUNTER += 1;
-  printf0("--------------------------------------- counter: %d ----------------------------------------\n", l->COUNTER);
+  //printf0("--------------------------------------- counter: %d ----------------------------------------\n", l->COUNTER);
   printf0("--------------------------------------- depth: %d ----------------------------------------\n", l->depth );
   printf0("--------------------------------------- level: %d ----------------------------------------\n", l->level );
-  if (l->COUNTER == 2){
+  //store only the test vectors after the setup iterations
+  /*if (l->COUNTER == 2){
       FILE *fptr;
       char Name[1000]; sprintf(Name, "testvector_depth%d.txt", l->depth); //Saves the test vectors,after the setup iterations to a file
       fptr = fopen(Name, "w");
@@ -528,6 +529,7 @@ void testvector_analysis_PRECISION( vector_PRECISION *test_vectors, level_struct
       }
      fclose(fptr);
   }
+  */
   for ( int i=0; i<l->num_eig_vect; i++ ) {   
     printf0("vector #%02d: ", i+1 );
     printf0("Vector size %d\n", l->inner_vector_size);
@@ -540,7 +542,7 @@ void testvector_analysis_PRECISION( vector_PRECISION *test_vectors, level_struct
     mu = global_norm_PRECISION( l->vbuf_PRECISION[1], 0, l->inner_vector_size, l, no_threading )/global_norm_PRECISION( test_vectors[i], 0, l->inner_vector_size, l, no_threading );
     printf0("singular value: %+lf%+lfi, singular vector precision: %le\n", (double)creal(lambda), (double)cimag(lambda), (double)mu );  
   }
-  printf0("--------------------------------------- counter: %d ----------------------------------------\n", l->COUNTER);
+  //printf0("--------------------------------------- counter: %d ----------------------------------------\n", l->COUNTER);
   printf0("--------------------------------------- depth: %d ----------------------------------------\n", l->depth );
   printf0("--------------------------------------- level: %d ----------------------------------------\n", l->level );
   
@@ -563,19 +565,26 @@ void printTestVector_PRECISION_setup(level_struct *l, struct Thread *threading )
 
 //Prints test vector
 void printTestVector_PRECISION(vector_PRECISION *test_vectors, level_struct *l, struct Thread *threading){
-  #ifdef TESTVECTOR_ANALYSIS
+  //#ifdef TESTVECTOR_ANALYSIS
  START_UNTHREADED_FUNCTION(threading)
   printf("##########################################################################################\n");
   printf0("--------------------------------------- depth: %d ----------------------------------------\n", l->depth );
   printf0("--------------------------------------- level: %d ----------------------------------------\n", l->level );
-  for ( int i=0; i<l->num_eig_vect; i++ ) {   
-    printf0("vector #%02d: ", i+1 );
+  FILE *fptr;
+  char Name[1000]; sprintf(Name, "testvector_level%d.txt", l->level); //Saves the test vectors, after the setup iterations to a file
+  fptr = fopen(Name, "w");
+  for (int i=0; i<l->num_eig_vect; i++ ) {
+    printf0("vector number %02d stored, ", i+1 );
     printf0("Vector size %d\n", l->inner_vector_size);
-    printf0("First entry: %le + i%le  \n", creal(test_vectors[i][0]),cimag(test_vectors[i][0]));
+    fprintf(fptr, "#-----------------vector%02d-----------------\n",i);
+    for (int j=0; j<l->inner_vector_size; j++){
+      fprintf(fptr, "%-30.17le%-30.17le\n", creal(test_vectors[i][j]), cimag(test_vectors[i][j]));
+    } 
   }
+  fclose(fptr);
   printf0("--------------------------------------- depth: %d ----------------------------------------\n", l->depth );
   printf0("--------------------------------------- level: %d ----------------------------------------\n", l->level );
-  printf("##########################################################################################\n");
+  //printf("##########################################################################################\n");
   END_UNTHREADED_FUNCTION(threading)
-  #endif
+  //#endif
 }
