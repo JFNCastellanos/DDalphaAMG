@@ -33,7 +33,7 @@ In order to compile the software MPI has to be installed. With this requirement 
           & & 1 &  \\
            & 1 & & \\
           -1 &  & &
-        \end{pmatrix}\\ \\
+        \end{pmatrix},\\ \\
         \gamma_2 = \gamma_z = \begin{pmatrix}
           & & i &  \\
           & &  & -i \\
@@ -59,7 +59,7 @@ In the future it will be convenient to use configurations from real physical sim
 
 
 \section{Printing the test vectors}
-The interpolator is built by arranging the test (complex) vectors in columns over the aggregates, as explained in Ref.\ \cite{Frommer}. DDalpha computes this vectors in the setup phase. The number of test vectors is a free parameter of the code, it can be changed in the sample files. By experimenting it was observed that between 20 and 30 vectors works fine. The test vectors at level $l$ are printed in a file with name \texttt{testvector\_level$l$.txt}. They are arranged in a single column separated by dashed lines. For the finest level (highest value of $l$) each vector has $12\times N_x\times N_y\times N_z\times N_t$ complex entries, which correspond to the Dirac matrix dimensions.
+The interpolator is built by arranging the test (complex) vectors in columns over the aggregates, as explained in Ref.\ \cite{Frommer}. DDalpha computes this vectors in the setup phase. The number of test vectors is a free parameter of the code and can be changed in the sample files. Through numerical experimentation it was observed that between 20 and 30 vectors works fine. The test vectors at level $l$ are printed in a file with name \texttt{testvector\_level$l$.txt}. They are arranged in a single column separated by dashed lines. For the finest level (highest value of $l$) each vector has $12\times N_x\times N_y\times N_z\times N_t$ complex entries, which corresponds to the Dirac matrix dimensions.
 
 
 
